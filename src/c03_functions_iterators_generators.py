@@ -12,15 +12,12 @@ This chapter will present several Python features from a functional viewpoint, a
 """
 
 import pathlib
-from typing import Callable, TextIO
+from typing import Callable, TextIO, Tuple, NamedTuple
+from collections import namedtuple
 
 # pylint:disable=missing-docstring
 
 # Writing pure functions
-
-# A function with no side effects fits the pure mathematical abstraction of a function: there are
-# no global changes to variables. Avoid the global statement. To be pure, a function should also
-# avoid changing the state mutable objects.
 
 
 def test_file_no_with() -> None:
@@ -43,6 +40,10 @@ def test_file_no_with() -> None:
 
 def test_file_with() -> None:
     """
+    A function with no side effects fits the pure mathematical abstraction of a function: there are
+    no global changes to variables. Avoid the global statement. To be pure, a function should also
+    avoid changing the state mutable objects.
+
     We can't easily eliminate all stateful Python objects. We should always use the with statement
     to encapsulate stateful file objects into a well-defined scope. Files should be proper
     parameters to functions, and the open files should be nested in a with statement to assure that
@@ -135,3 +136,62 @@ def test_string_prefix_postfix() -> None:
         return string
 
     assert remove(money_amount, "£,") == "1000"
+
+# Using tuples and named tuples
+
+
+def test_tuple_lambda() -> None:
+    """
+    Since Python tuples are immutable objects, they're another excellent example of objects
+    suitable for functional programming.
+
+    Consider working with a sequence of color values as a three tuple of the form (number, number,
+    number). It's not clear that these are in red, green, blue order. We can clarify the triple
+    structure by creating functions to pick a three-tuple apart. We can use red(item) to select the
+    item that has the red component. It can help to provide a more formal type hint on each
+    variable. For example, we can define a new type, RGB, as a three-tuple. The red variable is
+    provided with a type hint of Callable[[RGB], int] to indicate it should be considered to be a
+    function that accepts an RGB argument and produces an integer result.
+    """
+    RGB = Tuple[int, int, int]
+    red: Callable[[RGB], int] = lambda colour: colour[0]
+    green: Callable[[RGB], int] = lambda colour: colour[1]
+    blue: Callable[[RGB], int] = lambda colour: colour[2]
+
+    orange: RGB = (255, 165, 0)
+    assert red(orange) == 255
+    assert green(orange) == 165
+    assert blue(orange) == 0
+
+
+def test_tuple_namedtuple() -> None:
+    Colour = namedtuple("Colour", ("red", "green", "blue", "name"))
+    orange = Colour(255, 165, 0, "orange")
+    assert orange.red == 255
+    assert orange.green == 165
+    assert orange.blue == 0
+    assert orange.name == "orange"
+
+
+def test_tuple_namedtuple_typed() -> None:
+    """
+    This definition of the Colour class defines a tuple with specific names and type hints for each
+    position within the tuple. This preserves the advantages of performance and immutability. It
+    adds the ability for the mypy program to confirm that the tuple is used properly.
+    """
+    class Colour(NamedTuple):
+        """An RGB colour"""
+        red: int
+        green: int
+        blue: int
+        name: str
+
+        def __repr__(self) -> str:
+            return f"<Colour {self.name} red={self.red}, green={self.green}, blue={self.blue}>"
+
+    orange = Colour(255, 165, 0, "orange")
+    assert orange.red == 255
+    assert orange.green == 165
+    assert orange.blue == 0
+    assert orange.name == "orange"
+    assert repr(orange) == "<Colour orange red=255, green=165, blue=0>"
