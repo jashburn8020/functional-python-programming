@@ -11,8 +11,9 @@ This chapter will present several Python features from a functional viewpoint, a
 - Using iterable collections as our primary design tool for functional programming
 """
 
+import math
 import pathlib
-from typing import Callable, TextIO, Tuple, NamedTuple
+from typing import Callable, TextIO, Tuple, NamedTuple, Iterator
 from collections import namedtuple
 
 # pylint:disable=missing-docstring
@@ -195,3 +196,59 @@ def test_tuple_namedtuple_typed() -> None:
     assert orange.blue == 0
     assert orange.name == "orange"
     assert repr(orange) == "<Colour orange red=255, green=165, blue=0>"
+
+# Using generator expressions
+
+
+def test_generator_function_tail_call_optimisation() -> None:
+    """
+    A generator expression is lazy and creates objects only as required. This can improve
+    performance, unlike a list display (or comprehension) that can create a (potentially large)
+    collection of objects. Caveat: Generators can be used only once. After that, they appear empty.
+    """
+    def prime_factors(num: int) -> Iterator[int]:
+        """
+        Locate prime factors of a number. We handle 2 as a special case to cut the number of
+        iterations in half. All prime numbers, except 2, are odd.
+
+        We use one important for loop in addition to recursion. This explicit loop allows us to
+        easily handle numbers that have as many as 1,000 factors. Since the for variable, odd_num,
+        is not used outside the indented body of the loop, the stateful nature of the odd_num
+        variable won't lead to confusion if we make any changes to the body of the loop.
+
+        This example shows how to do tail-call optimization manually. The recursive calls that
+        count from 3 to sqrt(num) have been replaced with a loop. The for loop saves us from a
+        deeply recursive call stack.
+
+        Because the function is iterable, the 'yield from' statement is used to consume iterable
+        values from the recursive call and yield them to the caller.
+
+        Note: In a recursive generator function, be careful of the return statement. Do not use
+        'return recursive_iter(args)'. It returns only a generator object; it doesn't evaluate the
+        function to return the generated values.
+        """
+        if num % 2 == 0:
+            # If the number is even, we'll yield 2, and then...
+            yield 2
+            if num // 2 > 1:
+                # recursively yield all prime factors of num / 2.
+                yield from prime_factors(num // 2)
+            return
+        for odd_num in range(3, int(math.sqrt(num) + 0.5) + 1, 2):
+            # For odd numbers, we'll step through odd values greater than or equal to 3 to locate a
+            # candidate factor of the number.
+            if num % odd_num == 0:
+                # When we locate a factor, odd_num, we'll yield that factor, and then...
+                yield odd_num
+                if num // odd_num > 1:
+                    # recursively yield all prime factors of num / odd_num.
+                    yield from prime_factors(num // odd_num)
+                return
+        # In the event that we can't locate a factor, the number, num, must be prime, so we can
+        # yield the number.
+        yield num
+
+    assert list(prime_factors(2)) == [2]
+    assert list(prime_factors(14)) == [2, 7]
+    assert list(prime_factors(18)) == [2, 3, 3]
+    assert list(prime_factors(53)) == [53]
