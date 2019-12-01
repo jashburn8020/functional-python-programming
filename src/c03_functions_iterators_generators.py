@@ -13,8 +13,10 @@ This chapter will present several Python features from a functional viewpoint, a
 
 import math
 import pathlib
-from typing import Callable, TextIO, Tuple, NamedTuple, Iterator
+import itertools
+from typing import Callable, TextIO, Tuple, NamedTuple, Iterator, Iterable, Any
 from collections import namedtuple
+import pytest
 
 # pylint:disable=missing-docstring
 
@@ -252,3 +254,24 @@ def test_generator_function_tail_call_optimisation() -> None:
     assert list(prime_factors(14)) == [2, 7]
     assert list(prime_factors(18)) == [2, 3, 3]
     assert list(prime_factors(53)) == [53]
+
+# Exploring the limitations of generators
+
+
+def test_generator_single_use() -> None:
+    """Generator functions can be used only once."""
+    num_generator = (num for num in range(10))
+    assert min(num_generator) == 0
+    with pytest.raises(ValueError, match=r"max\(\) arg is an empty sequence"):
+        max(num_generator)
+
+
+def test_generator_multi_use() -> None:
+    """Use the itertools.tee() method to overcome the once-only limitation to create clones of the
+    generator expression."""
+    def limits(iterable: Iterable[int]) -> Tuple[int, int]:
+        max_iter, min_iter = itertools.tee(iterable, 2)
+        return min(max_iter), max(min_iter)
+
+    num_generator = (num for num in range(10))
+    assert limits(num_generator) == (0, 9)
