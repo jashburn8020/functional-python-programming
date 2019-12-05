@@ -14,7 +14,8 @@ This chapter will present several Python features from a functional viewpoint, a
 import math
 import pathlib
 import itertools
-from typing import Callable, TextIO, Tuple, NamedTuple, Iterator, Iterable, Any
+import csv
+from typing import Callable, TextIO, Tuple, NamedTuple, Iterator, Iterable, List, Text
 from collections import namedtuple
 import pytest
 
@@ -259,7 +260,9 @@ def test_generator_function_tail_call_optimisation() -> None:
 
 
 def test_generator_single_use() -> None:
-    """Generator functions can be used only once."""
+    """
+    Generator functions can be used only once.
+    """
     num_generator = (num for num in range(10))
     assert min(num_generator) == 0
     with pytest.raises(ValueError, match=r"max\(\) arg is an empty sequence"):
@@ -267,11 +270,51 @@ def test_generator_single_use() -> None:
 
 
 def test_generator_multi_use() -> None:
-    """Use the itertools.tee() method to overcome the once-only limitation to create clones of the
-    generator expression."""
+    """
+    Use the itertools.tee() method to overcome the once-only limitation to create clones of the
+    generator expression.
+    """
     def limits(iterable: Iterable[int]) -> Tuple[int, int]:
         max_iter, min_iter = itertools.tee(iterable, 2)
         return min(max_iter), max(min_iter)
 
     num_generator = (num for num in range(10))
     assert limits(num_generator) == (0, 9)
+
+# Combining generator expressions
+
+
+def test_generator_combine() -> None:
+    """
+    The essence of functional programming comes from the ways we can easily combine generator
+    expressions and generator functions to create very sophisticated composite processing sequences.
+
+    In this example, 'two_pow' is untouched and reusable. The resulting composite function is also
+    a generator expression, which is also lazy. This means extracting the next value from
+    'mersenne' will extract one value from 'two_pow', which will extract one value from the source
+    'range()' function.
+    """
+    two_pow = (2 ** num for num in range(10))
+    mersenne = (num - 1 for num in two_pow)
+    assert list(mersenne) == [0, 1, 3, 7, 15, 31, 63, 127, 255, 511]
+
+# Cleaning raw data with generator functions
+
+
+def test_generator_cleaning_raw_data() -> None:
+    """
+    Data in Anscombe's quartet is tab-delimited. The first 3 non-data rows need to be filtered.
+    """
+    def row_iter(source: TextIO) -> Iterator[List[Text]]:
+        return csv.reader(source, delimiter="\t")
+
+    def headers_fixed(row_iterator: Iterator[List[Text]]) -> Iterator[List[Text]]:
+        assert next(row_iterator) == ["Anscombe's quartet"]
+        assert next(row_iterator) == ["I", "II", "III", "IV"]
+        assert next(row_iterator) == ["x", "y", "x", "y", "x", "y", "x", "y"]
+        return row_iterator
+
+    with open("anscombe.txt") as source:
+        data = list(headers_fixed(row_iter(source)))
+        assert data == [["10.0", "8.04", "10.0", "9.14", "10.0", "7.46", "8.0", "6.58"], [
+            "8.0", "6.95", "8.0", "8.14", "8.0", "6.77", "8.0", "5.76"]]
