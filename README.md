@@ -1,6 +1,16 @@
-# functional-python-programming
-Examples from Functional Python Programming by Steven F. Lott
+# Functional Python Programming
 
-These examples are written as pytest 3 test cases. To run them, you can either:
-- `pytest-3 testfile`
-- `chmod 755 testfile`, and then `./testfile` if pytest is available at `/usr/bin/pytest-3` (or change the test files' shebang to match the location of pytest)
+This repo contains notes, extracts, and examples from Functional Python Programming (2nd edition) by Steven F. Lott.
+
+## Preface
+
+* Python is not a purely functional programming language.
+* We don't have
+    * unlimited recursion
+    * lazy evaluation of all expressions
+    * an optimizing compiler.
+* Key features of functional programming languages that are available:
+    * functions being first-class objects
+    * higher-order functions
+        * `map()`, `filter()`, `functools.reduce()`, `sorted()`, `min()`, `max()`
+* Our objective is to borrow good ideas from functional programming languages and use those ideas to create expressive and succinct applications in Python.
