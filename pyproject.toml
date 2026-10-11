@@ -2,13 +2,14 @@
 name = "functional-python-programming"
 version = "0.1.0"
 requires-python = ">=3.13"
-dependencies = [
-    "pytest>=9.1.1",
-]
+dependencies = []
 
 [dependency-groups]
 dev = [
+    "ipykernel>=7.4.0",
+    "ipytest>=0.14.2",
     "mypy>=2.3.1",
     "pylint>=4.1.1",
+    "pytest>=9.1.1",
     "ruff>=0.16.9",
 ]
