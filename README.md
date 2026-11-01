@@ -2,6 +2,8 @@
 
 This repo contains notes, extracts, and examples from Functional Python Programming (2nd edition) by Steven F. Lott.
 
+See also: <https://github.com/PacktPublishing/Functional-Python-Programming-Second-Edition>
+
 ## Preface
 
 * Python is not a purely functional programming language.
